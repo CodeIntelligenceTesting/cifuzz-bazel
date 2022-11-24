@@ -1,0 +1,51 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+bool_flag(
+    # Since this flag can be set from the command line, give it a very ugly name
+    # to discourage its use by users.
+    name = "__internal_has_libfuzzer",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "has_libfuzzer",
+    flag_values = {":__internal_has_libfuzzer": "True"},
+)
+
+selects.config_setting_group(
+    name = "on_linux_and_has_libfuzzer",
+    match_all = [
+        ":has_libfuzzer",
+        "@platforms//os:linux",
+    ],
+)
+
+cc_library(
+    name = "cifuzz",
+    srcs = select({
+        # We have to use dumper.cpp instead of dumper.c here as the non-Xcode
+        # toolchain on macOS needs -isysroot to be set to the macOS SDK path in
+        # order to find C headers. However, Bazel only offers BAZEL_CXXOPTS to
+        # set this flag in a way that affects the builtin include directory list
+        # compiled by the @local_config_cc auto-configured toolchain. There is
+        # no BAZEL_COPTS.
+        ":has_libfuzzer": ["src/dumper.cpp"],
+        "//conditions:default": [],
+    }),
+    hdrs = [
+        "include/cifuzz/cifuzz.h",
+        "include/fuzzer/FuzzedDataProvider.h",
+    ],
+    includes = ["include"],
+    linkopts = select({
+        # On Linux, we wrap the  __sanitizer_set_death_callback method to
+        # also dump sanitizer findings when they are non-fatal.
+        # See src/dumper.c for details.
+        ":on_linux_and_has_libfuzzer": ["-Wl,--wrap=__sanitizer_set_death_callback"],
+        "//conditions:default": [],
+    }),
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    alwayslink = True,
+)
