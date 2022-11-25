@@ -21,6 +21,12 @@ selects.config_setting_group(
     ],
 )
 
+config_setting(
+    name = "collect_coverage",
+    values = {"collect_code_coverage": "True"},
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "cifuzz",
     srcs = select({
