@@ -1,0 +1,12 @@
+{
+  "homepage": "https://github.com/CodeIntelligenceTesting/cifuzz-bazel",
+  "maintainers": [
+    {
+      "email": "markus.zoppelt@code-intelligence.com",
+      "github": "MarkusZoppelt",
+      "name": "Markus Zoppelt"
+    }
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}

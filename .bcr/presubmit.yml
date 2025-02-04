@@ -1,0 +1,9 @@
+matrix:
+  platform: ["macos", "ubuntu2404"]
+
+tasks:
+  build_targets:
+    name: "Build targets"
+    platform: ${{ platform }}
+    build_targets:
+      - "@cifuzz//..."
