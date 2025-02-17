@@ -20,7 +20,6 @@ def _find_llvm_cov_aspect_impl(_target, ctx):
 
 find_llvm_cov = aspect(
     implementation = _find_llvm_cov_aspect_impl,
-    attr_aspects = [],
     required_providers = [CcInfo],
     attrs = {
         "_cc_toolchain": attr.label(
