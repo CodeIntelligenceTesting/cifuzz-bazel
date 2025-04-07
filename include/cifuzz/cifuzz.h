@@ -60,42 +60,31 @@ static const int DOCTEST_ANON_VAR_15771531 =    \
 #define CIFUZZ_C_LINKAGE
 #endif
 
-#ifndef CIFUZZ_TEST_NAME
-#define CIFUZZ_TEST_NAME NULL
-#endif
-#ifndef CIFUZZ_SEED_CORPUS
-#define CIFUZZ_SEED_CORPUS NULL
-#endif
-#ifndef CIFUZZ_GENERATED_CORPUS
-#define CIFUZZ_GENERATED_CORPUS NULL
+static void LLVMFuzzerTestOneInputNoReturn(const uint8_t *data, size_t size);
+
+CIFUZZ_C_LINKAGE int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+  LLVMFuzzerTestOneInputNoReturn(data, size);
+  return 0;
+}
+
+#define FUZZ_TEST void LLVMFuzzerTestOneInputNoReturn
+
+#ifdef __APPLE__
+#define DECLARE_LLVM_FUZZER_INITIALIZE_NO_RETURN                               \
+  CIFUZZ_C_LINKAGE void LLVMFuzzerInitializeNoReturn(void)
+#else
+#define DECLARE_LLVM_FUZZER_INITIALIZE_NO_RETURN                               \
+  __attribute__((weak)) void LLVMFuzzerInitializeNoReturn(void)
 #endif
 
-#define FUZZ_TEST                                                                \
-static void LLVMFuzzerTestOneInputNoReturn(const uint8_t *data, size_t size);    \
-CIFUZZ_C_LINKAGE int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {  \
-  LLVMFuzzerTestOneInputNoReturn(data, size);                                    \
-  return 0;                                                                      \
-}                                                                                \
-CIFUZZ_C_LINKAGE const char *cifuzz_test_name(void) {                            \
-  return CIFUZZ_TEST_NAME;                                                       \
-}                                                                                \
-CIFUZZ_C_LINKAGE const char *cifuzz_seed_corpus(void) {                          \
-  return CIFUZZ_SEED_CORPUS;                                                     \
-}                                                                                \
-CIFUZZ_C_LINKAGE const char *cifuzz_generated_corpus(void) {                     \
-  return CIFUZZ_GENERATED_CORPUS;                                                \
-}                                                                                \
-CLION_TEST_PLAY_BUTTON                                                           \
-void LLVMFuzzerTestOneInputNoReturn
+#define FUZZ_TEST_SETUP                                                        \
+  DECLARE_LLVM_FUZZER_INITIALIZE_NO_RETURN;                                    \
+  CIFUZZ_C_LINKAGE int LLVMFuzzerInitialize(int *argc, char ***argv) {         \
+    (void)argc;                                                                \
+    (void)argv;                                                                \
+    LLVMFuzzerInitializeNoReturn();                                            \
+    return 0;                                                                  \
+  }                                                                            \
+  void LLVMFuzzerInitializeNoReturn
 
-#define FUZZ_TEST_SETUP                                              \
-static void LLVMFuzzerInitializeNoReturn(void);                      \
-CIFUZZ_C_LINKAGE int LLVMFuzzerInitialize(int *argc, char ***argv) { \
-  (void) argc;                                                       \
-  (void) argv;                                                       \
-  LLVMFuzzerInitializeNoReturn();                                    \
-  return 0;                                                          \
-}                                                                    \
-void LLVMFuzzerInitializeNoReturn
-
-#endif  // CIFUZZ_CIFUZZ_H
+#endif // CIFUZZ_CIFUZZ_H
