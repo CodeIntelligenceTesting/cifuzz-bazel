@@ -62,10 +62,21 @@ static const int DOCTEST_ANON_VAR_15771531 =    \
 
 static void LLVMFuzzerTestOneInputNoReturn(const uint8_t *data, size_t size);
 
+#ifdef CIFUZZ_GCOV
+CIFUZZ_C_LINKAGE void __gcov_dump();
+CIFUZZ_C_LINKAGE void __gcov_reset();
+CIFUZZ_C_LINKAGE int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+  LLVMFuzzerTestOneInputNoReturn(data, size);
+  __gcov_dump();
+  __gcov_reset();
+  return 0;
+}
+#else
 CIFUZZ_C_LINKAGE int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   LLVMFuzzerTestOneInputNoReturn(data, size);
   return 0;
 }
+#endif
 
 #define FUZZ_TEST void LLVMFuzzerTestOneInputNoReturn
 
